@@ -102,6 +102,12 @@
     "min":          3,
     "max":          60,
     "default":      10
+},
+{
+    "name":              "useGuidedTerrainFrame",
+    "shortDesc":  "Use Terrain Frame in Guided Mode",
+    "type":              "bool",
+    "default":      false
 }
 ]
 }

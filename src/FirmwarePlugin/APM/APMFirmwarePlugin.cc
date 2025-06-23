@@ -34,6 +34,8 @@
 #include "MAVLinkProtocol.h"
 #include "QGCLoggingCategory.h"
 #include "DeviceInfo.h"
+#include "FlyViewSettings.h"
+
 
 #include <QtNetwork/QTcpSocket>
 #include <QtCore/QRegularExpression>
@@ -813,12 +815,19 @@ void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
             Vehicle::MavCmdAckHandlerInfo_t handlerInfo = {};
             handlerInfo.resultHandler = _MAV_CMD_DO_REPOSITION_ResultHandler;
             handlerInfo.resultHandlerData = result_handler_data;
+            const bool useTerrainFrame = SettingsManager::instance()->flyViewSettings()->useGuidedTerrainFrame()->rawValue().toBool();
 
+            MAV_FRAME frame = useTerrainFrame
+                ? MAV_FRAME_GLOBAL_TERRAIN_ALT
+                : MAV_FRAME_GLOBAL;
+
+            qDebug() << "Using guided frame:" 
+                    << (useTerrainFrame ? "TERRAIN_ALT" : "GLOBAL");
             vehicle->sendMavCommandIntWithHandler(
                 &handlerInfo,
                 vehicle->defaultComponentId(),
                 MAV_CMD_DO_REPOSITION,
-                MAV_FRAME_GLOBAL,
+                frame,
                 -1.0f,
                 MAV_DO_REPOSITION_FLAGS_CHANGE_MODE,
                 static_cast<float>(forwardFlightLoiterRadius),
