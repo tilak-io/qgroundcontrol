@@ -36,7 +36,6 @@
 #include "DeviceInfo.h"
 #include "FlyViewSettings.h"
 
-
 #include <QtNetwork/QTcpSocket>
 #include <QtCore/QRegularExpression>
 #include <QtCore/QRegularExpressionMatch>
@@ -821,8 +820,6 @@ void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
                 ? MAV_FRAME_GLOBAL_TERRAIN_ALT
                 : MAV_FRAME_GLOBAL;
 
-            qDebug() << "Using guided frame:" 
-                    << (useTerrainFrame ? "TERRAIN_ALT" : "GLOBAL");
             vehicle->sendMavCommandIntWithHandler(
                 &handlerInfo,
                 vehicle->defaultComponentId(),

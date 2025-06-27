@@ -104,9 +104,9 @@
     "default":      10
 },
 {
-    "name":              "useGuidedTerrainFrame",
-    "shortDesc":  "Use Terrain Frame in Guided Mode",
-    "type":              "bool",
+"name":             "useGuidedTerrainFrame",
+    "shortDesc":    "Use Terrain Frame in Guided Mode",
+    "type":         "bool",
     "default":      false
 }
 ]
