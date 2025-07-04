@@ -618,7 +618,7 @@ QString APMFirmwarePlugin::getHobbsMeter(Vehicle* vehicle) const
     const QString timeStr = QString::asprintf("%04d:%02d:%02d", hours, minutes, seconds);
     qCDebug(VehicleLog) << "Hobbs Meter string:" << timeStr;
     return timeStr;
-} 
+}
 
 bool APMFirmwarePlugin::hasGripper(const Vehicle *vehicle) const
 {
@@ -803,48 +803,50 @@ void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
     // through mission items with custom "current" field values.
     auto *instanceData = qobject_cast<APMFirmwarePluginInstanceData*>(vehicle->firmwarePluginInstanceData());
 
+    const bool useTerrainFrame = SettingsManager::instance()->flyViewSettings()->useGuidedTerrainFrame()->rawValue().toBool();
+
+    MAV_FRAME frame = useTerrainFrame
+        ? MAV_FRAME_GLOBAL_TERRAIN_ALT
+        : MAV_FRAME_GLOBAL;
+
+    qDebug() << "Reposition for APM" << frame;
     // if we know it is supported or we don't know for sure it is
     // unsupported then send the command:
-    if (instanceData) {
-        if (instanceData->MAV_CMD_DO_REPOSITION_supported || !instanceData->MAV_CMD_DO_REPOSITION_unsupported) {
-            auto *result_handler_data = new MAV_CMD_DO_REPOSITION_HandlerData {
-                vehicle
-            };
-
-            Vehicle::MavCmdAckHandlerInfo_t handlerInfo = {};
-            handlerInfo.resultHandler = _MAV_CMD_DO_REPOSITION_ResultHandler;
-            handlerInfo.resultHandlerData = result_handler_data;
-            const bool useTerrainFrame = SettingsManager::instance()->flyViewSettings()->useGuidedTerrainFrame()->rawValue().toBool();
-
-            MAV_FRAME frame = useTerrainFrame
-                ? MAV_FRAME_GLOBAL_TERRAIN_ALT
-                : MAV_FRAME_GLOBAL;
-
-            vehicle->sendMavCommandIntWithHandler(
-                &handlerInfo,
-                vehicle->defaultComponentId(),
-                MAV_CMD_DO_REPOSITION,
-                frame,
-                -1.0f,
-                MAV_DO_REPOSITION_FLAGS_CHANGE_MODE,
-                static_cast<float>(forwardFlightLoiterRadius),
-                NAN,
-                gotoCoord.latitude(),
-                gotoCoord.longitude(),
-                vehicle->altitudeAMSL()->rawValue().toFloat()
-            );
-        }
-        if (instanceData->MAV_CMD_DO_REPOSITION_supported) {
-            // no need to fall back
-            return;
-        }
-    }
+    // if (instanceData) {
+    //     if (instanceData->MAV_CMD_DO_REPOSITION_supported || !instanceData->MAV_CMD_DO_REPOSITION_unsupported || ) {
+    //         auto *result_handler_data = new MAV_CMD_DO_REPOSITION_HandlerData {
+    //             vehicle
+    //         };
+    //
+    //         Vehicle::MavCmdAckHandlerInfo_t handlerInfo = {};
+    //         handlerInfo.resultHandler = _MAV_CMD_DO_REPOSITION_ResultHandler;
+    //         handlerInfo.resultHandlerData = result_handler_data;
+    //
+    //         vehicle->sendMavCommandIntWithHandler(
+    //             &handlerInfo,
+    //             vehicle->defaultComponentId(),
+    //             MAV_CMD_DO_REPOSITION,
+    //             frame,
+    //             -1.0f,
+    //             MAV_DO_REPOSITION_FLAGS_CHANGE_MODE,
+    //             static_cast<float>(forwardFlightLoiterRadius),
+    //             NAN,
+    //             gotoCoord.latitude(),
+    //             gotoCoord.longitude(),
+    //             useTerrainFrame? 0:vehicle->altitudeAMSL()->rawValue().toFloat()
+    //         );
+    //     }
+    //     if (instanceData->MAV_CMD_DO_REPOSITION_supported) {
+    //         // no need to fall back
+    //         return;
+    //     }
+    // }
 
     setGuidedMode(vehicle, true);
 
     QGeoCoordinate coordWithAltitude = gotoCoord;
     coordWithAltitude.setAltitude(vehicle->altitudeRelative()->rawValue().toDouble());
-    vehicle->missionManager()->writeArduPilotGuidedMissionItem(coordWithAltitude, false /* altChangeOnly */);
+    vehicle->missionManager()->writeArduPilotGuidedMissionItem(coordWithAltitude, false, frame);
 }
 
 void APMFirmwarePlugin::guidedModeRTL(Vehicle *vehicle, bool smartRTL) const

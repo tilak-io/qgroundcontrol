@@ -60,6 +60,7 @@ public:
     QString takeOffFlightMode() const override;
     QString stabilizedFlightMode() const override;
     void updateAvailableFlightModes(FlightModeList &modeList) override;
+    void guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoordinate& gotoCoord, double forwardFlightLoiterRadius) const override;
 
 protected:
     uint32_t _convertToCustomFlightModeEnum(uint32_t val) const override;

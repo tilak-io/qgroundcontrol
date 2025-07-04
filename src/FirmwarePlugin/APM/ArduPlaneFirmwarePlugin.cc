@@ -43,7 +43,7 @@ ArduPlaneFirmwarePlugin::ArduPlaneFirmwarePlugin(QObject *parent)
         { APMPlaneMode::THERMAL       , _thermalFlightMode      },
         { APMPlaneMode::LOITER2QLAND  , _loiter2qlandFlightMode },
         { APMPlaneMode::AUTOLAND      , _autolandFlightMode     },
-        
+
     });
 
     static FlightModeList availableFlightModes = {
@@ -138,3 +138,25 @@ uint32_t ArduPlaneFirmwarePlugin::_convertToCustomFlightModeEnum(uint32_t val) c
         return UINT32_MAX;
     }
 }
+
+// void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoordinate &gotoCoord, double forwardFlightLoiterRadius) const
+// {
+//     if (qIsNaN(vehicle->altitudeRelative()->rawValue().toDouble())) {
+//         qgcApp()->showAppMessage(QStringLiteral("Unable to go to location, vehicle position not known."));
+//         return;
+//     }
+//
+//     const bool useTerrainFrame = SettingsManager::instance()->flyViewSettings()->useGuidedTerrainFrame()->rawValue().toBool();
+//
+//     MAV_FRAME frame = useTerrainFrame
+//         ? MAV_FRAME_GLOBAL_TERRAIN_ALT
+//         : MAV_FRAME_GLOBAL;
+//
+//     setGuidedMode(vehicle, true);
+//
+//     qDebug() << "guidedModeGotoLocation Plane" << frame;
+//
+//     QGeoCoordinate coordWithAltitude = gotoCoord;
+//     coordWithAltitude.setAltitude(vehicle->altitudeRelative()->rawValue().toDouble());
+//     vehicle->missionManager()->writeArduPilotGuidedMissionItem(coordWithAltitude, false, frame);
+// }

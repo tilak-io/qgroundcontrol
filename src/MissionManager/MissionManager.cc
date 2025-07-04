@@ -51,7 +51,7 @@ void MissionManager::registerQmlTypes()
     qmlRegisterType<PlanMasterController>           ("QGroundControl.Controllers",  1, 0, "PlanMasterController");
 }
 
-void MissionManager::writeArduPilotGuidedMissionItem(const QGeoCoordinate& gotoCoord, bool altChangeOnly)
+void MissionManager::writeArduPilotGuidedMissionItem(const QGeoCoordinate& gotoCoord, bool altChangeOnly, MAV_FRAME frame=MAV_FRAME_GLOBAL_RELATIVE_ALT)
 {
     if (inProgress()) {
         qCDebug(MissionManagerLog) << "writeArduPilotGuidedMissionItem called while transaction in progress";
@@ -79,7 +79,7 @@ void MissionManager::writeArduPilotGuidedMissionItem(const QGeoCoordinate& gotoC
         missionItem.x =                 gotoCoord.latitude();
         missionItem.y =                 gotoCoord.longitude();
         missionItem.z =                 gotoCoord.altitude();
-        missionItem.frame =             MAV_FRAME_GLOBAL_RELATIVE_ALT;
+        missionItem.frame =             frame;
         missionItem.current =           altChangeOnly ? 3 : 2;
         missionItem.autocontinue =      true;
 
@@ -279,14 +279,14 @@ void MissionManager::_updateMissionIndex(int index)
     }
 }
 
-void MissionManager::_handleHighLatency(const mavlink_message_t& message) 
+void MissionManager::_handleHighLatency(const mavlink_message_t& message)
 {
     mavlink_high_latency_t highLatency;
     mavlink_msg_high_latency_decode(&message, &highLatency);
     _updateMissionIndex(highLatency.wp_num);
 }
 
-void MissionManager::_handleHighLatency2(const mavlink_message_t& message) 
+void MissionManager::_handleHighLatency2(const mavlink_message_t& message)
 {
     mavlink_high_latency2_t highLatency2;
     mavlink_msg_high_latency2_decode(&message, &highLatency2);
