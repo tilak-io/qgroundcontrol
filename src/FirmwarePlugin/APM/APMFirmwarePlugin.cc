@@ -797,6 +797,16 @@ void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
         qgcApp()->showAppMessage(QStringLiteral("Unable to go to location, vehicle position not known."));
         return;
     }
+    const bool useTerrainFrame = SettingsManager::instance()->flyViewSettings()->useGuidedTerrainFrame()->rawValue().toBool();
+
+    // Fall back immediately for fixed-wing using terrain frame
+    if (vehicle->fixedWing() && useTerrainFrame) {
+        setGuidedMode(vehicle, true);
+        QGeoCoordinate coordWithAltitude = gotoCoord;
+        coordWithAltitude.setAltitude(vehicle->altitudeRelative()->rawValue().toDouble());
+        vehicle->missionManager()->writeArduPilotGuidedMissionItem(coordWithAltitude, false /* altChangeOnly */);
+        return;
+    }
 
     // attempt to use MAV_CMD_DO_REPOSITION to move vehicle.  If that
     // comes back as unsupported, try using the old system of sending
@@ -814,11 +824,14 @@ void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
             Vehicle::MavCmdAckHandlerInfo_t handlerInfo = {};
             handlerInfo.resultHandler = _MAV_CMD_DO_REPOSITION_ResultHandler;
             handlerInfo.resultHandlerData = result_handler_data;
-            const bool useTerrainFrame = SettingsManager::instance()->flyViewSettings()->useGuidedTerrainFrame()->rawValue().toBool();
 
             MAV_FRAME frame = useTerrainFrame
                 ? MAV_FRAME_GLOBAL_TERRAIN_ALT
                 : MAV_FRAME_GLOBAL;
+
+            float altitude = useTerrainFrame
+                ? vehicle->altitudeRelative()->rawValue().toFloat()
+                : vehicle->altitudeAMSL()->rawValue().toFloat();
 
             vehicle->sendMavCommandIntWithHandler(
                 &handlerInfo,
@@ -831,7 +844,7 @@ void APMFirmwarePlugin::guidedModeGotoLocation(Vehicle *vehicle, const QGeoCoord
                 NAN,
                 gotoCoord.latitude(),
                 gotoCoord.longitude(),
-                vehicle->altitudeAMSL()->rawValue().toFloat()
+                altitude
             );
         }
         if (instanceData->MAV_CMD_DO_REPOSITION_supported) {
